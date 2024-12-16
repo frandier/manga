@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 interface MangaViewerProps {
     dir_path: string;
@@ -23,7 +25,6 @@ export default function MangaViewer({
     const [visibleImages, setVisibleImages] = useState<string[]>([]);
     const [loadedCount, setLoadedCount] = useState(0);
 
-    // Memorizar las URLs decodificadas
     const fullImageUrls = useMemo(
         () => images.map((encodedImage) => `${dir_path}${encodedImage}`),
         [dir_path, images]
@@ -32,12 +33,10 @@ export default function MangaViewer({
     const BATCH_SIZE = 5;
 
     useEffect(() => {
-        // Resetear imágenes visibles y scroll al inicio al cambiar las imágenes
         setVisibleImages([]);
         setLoadedCount(0);
         window.scrollTo({ top: 0, behavior: "smooth" });
 
-        // Cargar el primer lote
         setVisibleImages(fullImageUrls.slice(0, BATCH_SIZE));
         setLoadedCount(BATCH_SIZE);
     }, [fullImageUrls]);
@@ -61,12 +60,11 @@ export default function MangaViewer({
     }, [loadedCount, fullImageUrls]);
 
     return (
-        <div className="bg-[#121212] text-gray-100 min-h-screen py-6 px-4">
-            <div className="max-w-3xl mx-auto bg-[#1E1E1E] rounded-lg shadow-lg p-4">
-                {/* Información del capítulo */}
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold mb-2">{title}</h1>
-                    <p className="text-gray-400 mb-4">{description}</p>
+        <div className="bg-[#121212] text-gray-100 min-h-screen">
+            <div className="max-w-5xl mx-auto py-6 px-4">
+                <div className="mb-4">
+                    <h1 className="text-2xl font-bold mb-1">{title}</h1>
+                    <p className="text-gray-400 mb-2">{description}</p>
                     <div className="flex justify-between items-center">
                         {chapter_previus ? (
                             <Link href={`/viewer/${chapter_previus}`}>
@@ -91,21 +89,25 @@ export default function MangaViewer({
                     </div>
                 </div>
 
-                {/* Visor del manga */}
-                {visibleImages.map((image, index) => (
-                    <div key={index} className="mb-6">
-                        <img
-                            src={image}
-                            alt={`Página ${index + 1}`}
-                            className="w-full h-auto rounded-lg shadow-md"
-                            loading="lazy"
-                        />
-                    </div>
-                ))}
+                <div className="flex flex-col items-center">
+                    {visibleImages.map((image, index) => (
+                        <div key={index} className="mb-4 max-w-full w-full">
+                            <LazyLoadImage
+                                src={image}
+                                alt={`Página ${index + 1}`}
+                                className="max-w-full w-full rounded-lg shadow-md"
+                                effect="blur"
+                                style={{ display: 'block' }}
+                            />
+                        </div>
+                    ))}
+                </div>
+
                 {loadedCount < fullImageUrls.length && (
-                    <p className="text-center text-gray-400 mt-6">Cargando más páginas...</p>
+                    <p className="text-center text-gray-400 mt-4">Cargando más páginas...</p>
                 )}
-                <div className="flex justify-between items-center">
+
+                <div className="mt-6 flex justify-between items-center">
                     {chapter_previus ? (
                         <Link href={`/viewer/${chapter_previus}`}>
                             <button className="bg-[#2A2A2A] text-gray-100 px-4 py-2 rounded-md shadow-md hover:bg-gray-700 transition">
